@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Broadgame</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container">
+
+
+
+    <div class="row justify-content-center" v-if="isAuth">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3>Регистрация игрока</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" id="email" v-model="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login">Логин</label>
+                        <input type="text" class="form-control" id="login" v-model="login" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" class="form-control" id="password" v-model="password" required>
+                    </div>
+                    <div v-if="error" class="alert alert-danger">{{ error }}</div>
+                    <button class="btn btn-primary btn-block" @click="registerUser">Зарегистрироваться</button>
+                   <div v-if="success" class="alert alert-success">{{success}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            email: '',
+            login: '',
+            password: '',
+            error: '',
+            success: '',
+            isAuth: true,
+        },
+        methods: {
+            async registerUser() {
+                this.success = ""
+                this.error = "";
+                try {
+                    const response = await axios.post('http://localhost:5000/users', {
+                        email: this.email,
+                        login: this.login,
+                        password: this.password
+                    });
+                    this.success = "Пользователь успешно зарегистрирован";
+                    this.email = ""
+                    this.login = ""
+                    this.password = ""
+                } catch (error) {
+                    console.log(error)
+                    if(error.response && error.response.data && error.response.data.message) {
+                        this.error = error.response.data.message;
+                    } else {
+                        this.error = "Произошла ошибка";
+                    }
+                }
+            },
+            async getAllUsers() {
+                try {
+                    const response = await axios.get("http://localhost:5000/users")
+                    console.log(response)
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+        },
+        beforeMount() {
+            this.getAllUsers()
+        }
+    });
+</script>
+
+</body>
+</html>
