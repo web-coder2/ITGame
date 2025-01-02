@@ -75,7 +75,6 @@ def create_user():
 
     if User.query.filter_by(email=email).first():
         return jsonify({'message': 'Пользователь с таким email уже существует'}), 400
-
     if User.query.filter_by(login=login).first():
         return jsonify({'message': 'Пользователь с таким логином уже существует'}), 400
 
@@ -108,6 +107,37 @@ def create_user():
     }
 
     return jsonify(user_data), 201
+
+@app.route('/login', methods=['POST'])
+def login_user():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'message': 'Нет данных в теле запроса'}), 400
+
+    login = data.get('login')
+    password = data.get('password')
+
+    if not all([login, password]):
+        return jsonify({'message': 'Не все обязательные поля заполнены'}), 400
+
+    user = User.query.filter_by(login=login).first()
+
+    if user and user.check_password(password):
+        user_data = {
+            "userId": user.userId,
+            "email": user.email,
+            "login": user.login,
+            "isRegistered": user.isRegistered,
+            "userStats": {
+                "countGames": user.userStats.countGames,
+                "countWins": user.userStats.countWins,
+                "scoreTotal": user.userStats.scoreTotal
+              }
+        }
+        return jsonify(user_data), 200
+    else:
+        return jsonify({'message': 'Неверный логин или пароль'}), 401
 
 
 if __name__ == '__main__':
