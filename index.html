@@ -20,6 +20,39 @@
             font-family: cursive;
             font-size: 16px;
         }
+        /* Дополнительные стили для наглядности */
+        .profile-info-container {
+            margin-bottom: 20px;
+        }
+
+        .profile-info-container img {
+            max-width: 150px;
+             height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-info-text {
+            padding: 10px;
+        }
+
+        .profile-table {
+            margin-bottom: 20px;
+        }
+        @media (max-width: 767.98px) {
+          .profile-info-container {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              text-align: center;
+          }
+          .profile-info-container img {
+              margin-bottom: 20px;
+          }
+         .profile-table {
+           width: 100% !important;
+         }
+        }
     </style>
 </head>
 <body>
@@ -78,15 +111,75 @@
     </div>
 
 
-    <div class="row container" v-if="!isAuth">
-        <div class="col-md-6">
-            <div class="card">
-                <h3>Welcome: <span class="text-success">{{ login }}</span></h3>
+    <div class="container" v-if="!isAuth">
+        <div class="profile-info-container d-flex align-items-center flex-wrap">
+            <img src="logo.jpg" alt="Фото профиля" class="img-fluid mr-3">
+            <div class="profile-info-text flex-grow-1">
+                <div><b>Логин:</b><span class="text-success"> {{ login }}</span></div>
+                <div><b>Кол-во игр:</b><span class="text-success"> {{ countGames }}</span></div>
+                <div><b>Кол-во побед:</b><span class="text-success"> {{ countWins }}</span></div>
+                <div><b>Mail:</b><span class="text-success"> {{ email }}</span></div>
             </div>
         </div>
+
+        <div class="profile-table table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Колонка 1</th>
+                        <th>Колонка 2</th>
+                        <th>Колонка 3</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Данные 1</td>
+                        <td>Данные 2</td>
+                        <td>Данные 3</td>
+                    </tr>
+                    <tr>
+                        <td>Данные 4</td>
+                        <td>Данные 5</td>
+                        <td>Данные 6</td>
+                    </tr>
+                     <tr>
+                        <td>Данные 7</td>
+                        <td>Данные 8</td>
+                        <td>Данные 9</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        <div class="profile-table table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Колонка A</th>
+                        <th>Колонка B</th>
+                        <th>Колонка C</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Значение A1</td>
+                        <td>Значение B1</td>
+                        <td>Значение C1</td>
+                    </tr>
+                    <tr>
+                        <td>Значение A2</td>
+                        <td>Значение B2</td>
+                        <td>Значение C2</td>
+                    </tr>
+                    <tr>
+                        <td>Значение A3</td>
+                        <td>Значение B3</td>
+                        <td>Значение C3</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-
-
     
 </div>
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
@@ -109,6 +202,11 @@
             AuthError: "",
             AuthSuccess: "",
             isAuth: true,
+
+            // для личного кабинета юзера
+            countWins: 0,
+            countGames: 0,
+            userScore: 0,
         },
         methods: {
             async registerUser() {
@@ -157,8 +255,14 @@
                     });
                     this.success = "Авторизация прошла успешно";
                     console.log("Авторизация успешна:", response.data);
-                    new Promise(resolve => setTimeout(resolve, 1500));
                     this.isAuth = false
+
+                    this.email = response.data["email"]
+                    this.countWins = response.data["userStats"]["countWins"]
+                    this.countGames = response.data["userStats"]["countGames"]
+                    this.userScore = response.data["userStats"]["scoreTotal"]
+                    console.log(this.email)
+
                 } catch (error) {
                    console.log(error)
                     if(error.response && error.response.data && error.response.data.message) {
@@ -170,7 +274,7 @@
             }
         },
         beforeMount() {
-            this.getAllUsers()
+            //this.getAllUsers()
         }
     });
 </script>
