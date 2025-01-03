@@ -5,62 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IT Broadgame</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            margin-top: 50px;
-        }
-        .navbar-brand img {
-            max-height: 30px; /* Задайте максимальную высоту иконки */
-            margin-right: 5px; /*  Отступ справа от иконки */
-        }
-        .site-title {
-            font-family: cursive;
-            font-size: 16px;
-        }
-        /* Дополнительные стили для наглядности */
-        .profile-info-container {
-            margin-bottom: 20px;
-        }
-
-        .profile-info-container img {
-            max-width: 150px;
-             height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .profile-info-text {
-            padding: 10px;
-        }
-
-        .profile-table {
-            margin-bottom: 20px;
-        }
-        @media (max-width: 767.98px) {
-          .profile-info-container {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              text-align: center;
-          }
-          .profile-info-container img {
-              margin-bottom: 20px;
-          }
-         .profile-table {
-           width: 100% !important;
-         }
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
 
 <div id="app" class="container">
 
 
-    <!--<div class="row justify-content-center" v-if="isAuth">
+    <div class="row justify-content-center" v-if="isReger">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header text-center">
@@ -85,7 +37,7 @@
                 </div>
             </div>
         </div>
-    </div>-->
+    </div>
 
     <div class="row justify-content-center" v-if="isAuth">
         <div class="col-md-6">
@@ -100,7 +52,7 @@
                   </div>
                   <div class="form-group">
                     <label for="password">Пароль</label>
-                    <input type="password" class="form-control" id="password" v-model="password" required>
+                    <input type="password" class="form-control" @keyup.enter="loginUser()" id="password" v-model="password" required>
                   </div>
                     <div v-if="error" class="alert alert-danger">{{ error }}</div>
                     <div v-if="success" class="alert alert-success">{{success}}</div>
@@ -112,40 +64,35 @@
 
 
     <div class="container" v-if="!isAuth">
-        <div class="profile-info-container d-flex align-items-center flex-wrap">
-            <img src="logo.jpg" alt="Фото профиля" class="img-fluid mr-3">
+        <div class="d-flex align-items-center flex-wrap profile-info-container">
+            <img src="logo.jpg" alt="Фото профиля" class="img-fluid mr-3 profile-image">
             <div class="profile-info-text flex-grow-1">
-                <div><b>Логин:</b><span class="text-success"> {{ login }}</span></div>
-                <div><b>Кол-во игр:</b><span class="text-success"> {{ countGames }}</span></div>
-                <div><b>Кол-во побед:</b><span class="text-success"> {{ countWins }}</span></div>
-                <div><b>Mail:</b><span class="text-success"> {{ email }}</span></div>
+                <div><b>Логин:</b> <span class="text-success"> {{ login }}</span></div>
+                <div><b>Кол-во игр:</b> <span class="text-success"> {{ countGames }}</span></div>
+                <div><b>Кол-во побед:</b> <span class="text-success"> {{ countWins }}</span></div>
+                <div><b>Mail:</b> <span class="text-success"> {{ email }}</span></div>
+                <div class="mt-3">
+                    <button class="btn btn-danger exit-button" @click="exitUser()">Выйти</button>
+                </div>
             </div>
         </div>
 
-        <div class="profile-table table-responsive">
+        <div class="profile-table table-responsive" v-if="usersArray.length > 0">
             <table class="table table-bordered table-striped">
-                <thead>
+                <thead class="table-dark">
                     <tr>
-                        <th>Колонка 1</th>
-                        <th>Колонка 2</th>
-                        <th>Колонка 3</th>
+                        <th><i class="fas fa-user"></i> Логин</th>
+                        <th><i class="fas fa-gamepad"></i> Кол-во игр</th>
+                        <th><i class="fas fa-trophy"></i> Кол-во побед</th>
+                        <th><i class="fas fa-star"></i> Рейтинг</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Данные 1</td>
-                        <td>Данные 2</td>
-                        <td>Данные 3</td>
-                    </tr>
-                    <tr>
-                        <td>Данные 4</td>
-                        <td>Данные 5</td>
-                        <td>Данные 6</td>
-                    </tr>
-                     <tr>
-                        <td>Данные 7</td>
-                        <td>Данные 8</td>
-                        <td>Данные 9</td>
+                    <tr v-for="(item) in usersArray">
+                        <td>{{ item.login }}</td>
+                        <td>{{ item.allGames }}</td>
+                        <td>{{ item.allWins }}</td>
+                        <td>{{ item.allScore }}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -182,8 +129,67 @@
     </div>
     
 </div>
-<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</body>
+</html>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .container {
+        margin-top: 50px;
+    }
+    .navbar-brand img {
+        max-height: 30px; /* Задайте максимальную высоту иконки */
+        margin-right: 5px; /*  Отступ справа от иконки */
+    }
+    .site-title {
+        font-family: cursive;
+        font-size: 16px;
+    }
+    /* Дополнительные стили для наглядности */
+    .profile-info-container {
+        margin-bottom: 20px;
+    }
+    .profile-info-container img {
+        max-width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .profile-info-text {
+        padding: 10px;
+    }
+    .exit-button {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .exit-button:hover{
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    .profile-table {
+        margin-bottom: 20px;
+    }
+    @media (max-width: 767.98px) {
+        .profile-info-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .profile-info-container img {
+            margin-bottom: 20px;
+        }
+        .profile-table {
+            width: 100% !important;
+        }
+    }
+</style>
+
 <script>
     new Vue({
         el: '#app',
@@ -194,6 +200,7 @@
             password: '',
             error: '',
             success: '',
+            isReger: false,
             
 
             // для атворизации
@@ -207,6 +214,7 @@
             countWins: 0,
             countGames: 0,
             userScore: 0,
+            usersArray: [],
         },
         methods: {
             async registerUser() {
@@ -232,9 +240,24 @@
                 }
             },
             async getAllUsers() {
+                let usersArray = []
                 try {
                     const response = await axios.get("http://localhost:5000/users")
-                    console.log(response)
+                    //console.log(response.data)
+                    
+                    for (let item in response.data) {
+                        usersArray.push({
+                            "email": response.data[item]["email"],
+                            "login": response.data[item]["login"],
+                            "allGames": response.data[item]["userStats"]["countGames"],
+                            "allWins": response.data[item]["userStats"]["countWins"],
+                            "allScore": response.data[item]["userStats"]["scoreTotal"]
+                        })
+                    }
+
+                    this.usersArray = usersArray.sort((a, b) => b.allScore - a.allScore)
+                    //console.log(this.usersArray)
+
                 } catch (error) {
                     console.log(error)
                 }
@@ -243,7 +266,8 @@
                 this.login = ""
                 this.password = ""
                 this.email = ""
-                this.isAut = true
+                this.isAuth = true
+                this.usersArray = []
             },
             async loginUser() {
                 this.error = "";
@@ -261,7 +285,8 @@
                     this.countWins = response.data["userStats"]["countWins"]
                     this.countGames = response.data["userStats"]["countGames"]
                     this.userScore = response.data["userStats"]["scoreTotal"]
-                    console.log(this.email)
+                    
+                    this.getAllUsers()
 
                 } catch (error) {
                    console.log(error)
@@ -278,6 +303,3 @@
         }
     });
 </script>
-
-</body>
-</html>
