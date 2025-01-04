@@ -7,6 +7,14 @@ body {
 .user-line {
     background-color: greenyellow;
 }
+.game-success {
+    background-color: green;
+    color: white;
+}
+.game-danger {
+    background-color: darkred;
+    color: white;
+}
 .navbar-brand img {
     max-height: 30px; /* Задайте максимальную высоту иконки */
     margin-right: 5px; /*  Отступ справа от иконки */

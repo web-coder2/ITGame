@@ -11,7 +11,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
+
 
 class UserStats(db.Model):
     userStatsId = db.Column(db.Integer, primary_key=True)
@@ -40,9 +41,12 @@ class User(db.Model):
 class Game(db.Model):
     gameId = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.userId'), nullable=False)
-    game_time = db.Column(db.DateTime, server_default=db.func.now())
+    game_time = db.Column(db.Integer)  # game_time теперь Integer
     result = db.Column(db.String(20))
     score = db.Column(db.Integer)
+
+    def generate_random_game_time(self):
+        return randint(40, 80)
 
 
 with app.app_context():
@@ -109,9 +113,10 @@ def create_user():
     for _ in range(4):
         random_result = choice(results)
         random_score = randint(100, 250)
-        new_game = Game(user=new_user, result=random_result, score=random_score)
-        db.session.add(new_game)
-    
+        game = Game(user=new_user, result=random_result, score=random_score)
+        game.game_time = game.generate_random_game_time()
+        db.session.add(game)
+
     db.session.commit()
 
     user_data = {
@@ -150,7 +155,7 @@ def login_user():
             "email": user.email,
             "login": user.login,
             "isRegistered": user.isRegistered,
-              "userStats": {
+            "userStats": {
                 "countGames": user.userStats.countGames,
                 "countWins": user.userStats.countWins,
                 "scoreTotal": user.userStats.scoreTotal
@@ -175,13 +180,14 @@ def add_game():
 
     if not all([login, result, score]):
         return jsonify({'message': 'Не все обязательные поля заполнены'}), 400
-    
+
     user = User.query.filter_by(login=login).first()
 
     if not user:
         return jsonify({'message': 'Пользователь не найден'}), 404
-        
+
     new_game = Game(user=user, result=result, score=score)
+    new_game.game_time = new_game.generate_random_game_time()
     db.session.add(new_game)
     db.session.commit()
     return jsonify({'message': 'Игра добавлена успешно'}), 201
@@ -195,9 +201,9 @@ def get_games():
     user = User.query.filter_by(login=login).first()
     if not user:
         return jsonify({'message': 'Пользователь не найден'}), 404
-    
-    games = Game.query.filter_by(user_id = user.userId).all()
-    
+
+    games = Game.query.filter_by(user_id=user.userId).all()
+
     games_list = []
     for game in games:
         game_data = {
@@ -209,22 +215,24 @@ def get_games():
         games_list.append(game_data)
     return jsonify(games_list), 200
 
+
 @app.route('/getAllGames', methods=['GET'])
 def get_all_games():
     all_games = []
-    
+
     for user in User.query.all():
         games = Game.query.filter_by(user_id=user.userId).all()
         for game in games:
-          all_games.append({
-              "user": user.login,
-              "gameId": game.gameId,
-              "game_time": game.game_time,
-              "result": game.result,
-              "score": game.score
-          })
-    
+            all_games.append({
+                "user": user.login,
+                "gameId": game.gameId,
+                "game_time": game.game_time,
+                "result": game.result,
+                "score": game.score
+            })
+
     return jsonify(all_games), 200
+
 
 @app.route('/getAllGamesByLogin', methods=['GET'])
 def get_all_games_by_login():
@@ -233,10 +241,10 @@ def get_all_games_by_login():
         return jsonify({'message': 'Логин обязателен'}), 400
     user = User.query.filter_by(login=login).first()
     if not user:
-         return jsonify({'message': 'Пользователь не найден'}), 404
-    
-    games = Game.query.filter_by(user_id = user.userId).all()
-    
+        return jsonify({'message': 'Пользователь не найден'}), 404
+
+    games = Game.query.filter_by(user_id=user.userId).all()
+
     games_list = []
     for game in games:
         game_data = {

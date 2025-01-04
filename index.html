@@ -109,29 +109,21 @@
             </div>
 
         <div class="profile-table table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead>
+            <table class="table table-bordered">
+                <thead class="table-dark">
                     <tr>
-                        <th>Колонка A</th>
-                        <th>Колонка B</th>
-                        <th>Колонка C</th>
+                        <th>UserName</th>
+                        <th>Результат игры</th>
+                        <th>Время игры</th>
+                        <th>Кол-во очков за игру</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Значение A1</td>
-                        <td>Значение B1</td>
-                        <td>Значение C1</td>
-                    </tr>
-                    <tr>
-                        <td>Значение A2</td>
-                        <td>Значение B2</td>
-                        <td>Значение C2</td>
-                    </tr>
-                    <tr>
-                        <td>Значение A3</td>
-                        <td>Значение B3</td>
-                        <td>Значение C3</td>
+                    <tr v-for="(item, index) in userGamesArray" :key="index" :class="{'game-success': item.result === 'Победа', 'game-danger': item.result === 'Поражение'}">
+                        <td>{{ item.username }}</td>
+                        <td>{{ item.result }}</td>
+                        <td>{{ item.userGameTime }}</td>
+                        <td>{{ item.GameScore }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -145,6 +137,33 @@
 </html>
 
 <script>
+
+function formatGameTime(minutes) {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    let formattedString = '';
+
+    if (hours > 0){
+        formattedString += `${hours} час`;
+        if(hours > 1 && hours < 5) formattedString += `а`;
+        if(hours > 4 ) formattedString += `ов`;
+    }
+
+    if(hours > 0 && remainingMinutes > 0 ) formattedString += ` `;
+
+    if (remainingMinutes > 0) {
+          formattedString += `${remainingMinutes} минут`;
+         if(remainingMinutes > 1 && remainingMinutes < 5) formattedString += `ы`;
+    }
+
+    if(hours == 0 && remainingMinutes == 0){
+        formattedString += `0 минут`
+    }
+
+    return formattedString;
+}
+
     new Vue({
         el: '#app',
         data: {
@@ -169,6 +188,7 @@
             countGames: 0,
             userScore: 0,
             usersArray: [],
+            userGamesArray: [],
         },
         methods: {
             async registerUser() {
@@ -219,7 +239,6 @@
                 }
             },
             async getAllForGames() {
-                let userGamesArray = [];
                 let allUsersGames = [];
                 try {
                     const response = await axios.get("http://localhost:5000/getAllGamesByLogin", {
@@ -227,7 +246,15 @@
                             login: this.login
                         }
                     });
-                    console.log(response);
+                    for (let item in response.data) {
+                        allUsersGames.push({
+                            "username": this.login,
+                            "userGameTime": formatGameTime(response.data[item]["game_time"]),
+                            "result": response.data[item]["result"] == "win" ? "Победа" : "Поражение",
+                            "GameScore": response.data[item]["score"]
+                        })
+                    }
+                    this.userGamesArray = allUsersGames
                 } catch (error) {
                     console.log("что блять ошибка нахуй да пиздец бля >>> ", error);
                 }
