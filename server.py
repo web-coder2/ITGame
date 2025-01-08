@@ -41,13 +41,26 @@ class User(db.Model):
 class Game(db.Model):
     gameId = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.userId'), nullable=False)
-    game_time = db.Column(db.Integer)  # game_time теперь Integer
+    game_time = db.Column(db.Integer)
     result = db.Column(db.String(20))
     score = db.Column(db.Integer)
 
     def generate_random_game_time(self):
         return randint(40, 80)
 
+def calculate_total_score(user):
+    """Вычисляет сумму очков для пользователя"""
+    total_score = 0
+    for game in user.games:
+        total_score += game.score
+    return total_score
+
+def update_user_stats(user):
+    """Обновляет статистику пользователя"""
+    user_stats = user.userStats
+    user_stats.scoreTotal = calculate_total_score(user)
+    user_stats.countGames = len(user.games)
+    user_stats.countWins = sum(1 for game in user.games if game.result == 'win')
 
 with app.app_context():
     db.create_all()
@@ -95,20 +108,12 @@ def create_user():
     new_user = User(email=email, login=login)
     new_user.set_password(password)
 
-    randomizerGames = randint(1, 100)
-    randomizerWins = randint(1, randomizerGames)
-    randomizerTotal = randint(100, 200)
-    new_user_stats = UserStats(user=new_user,
-        countGames=randomizerGames,
-        countWins=randomizerWins,
-        scoreTotal=randomizerTotal
-    )
 
+    new_user_stats = UserStats(user=new_user)
     db.session.add(new_user)
     db.session.add(new_user_stats)
     db.session.commit()
-
-    # Создаем 4 записи в таблице games
+    
     results = ['win', 'lose']
     for _ in range(4):
         random_result = choice(results)
@@ -116,7 +121,9 @@ def create_user():
         game = Game(user=new_user, result=random_result, score=random_score)
         game.game_time = game.generate_random_game_time()
         db.session.add(game)
-
+    db.session.commit()
+    
+    update_user_stats(new_user)
     db.session.commit()
 
     user_data = {
@@ -189,6 +196,9 @@ def add_game():
     new_game = Game(user=user, result=result, score=score)
     new_game.game_time = new_game.generate_random_game_time()
     db.session.add(new_game)
+    db.session.commit()
+
+    update_user_stats(user)
     db.session.commit()
     return jsonify({'message': 'Игра добавлена успешно'}), 201
 
