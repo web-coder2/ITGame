@@ -7,6 +7,10 @@ body {
 .user-line {
     background-color: greenyellow;
 }
+.overflow-table {
+    overflow-y: auto;
+    height: 250px;
+}
 .game-success {
     background-color: green;
     color: white;

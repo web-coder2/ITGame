@@ -85,7 +85,7 @@
             </div>
         </div>
 
-        <div class="profile-table table-responsive" v-if="usersArray.length > 0">
+        <div class="profile-table table-responsive overflow-table" v-if="usersArray.length > 0">
             <table class="table table-bordered">
                 <thead class="table-dark">
                     <tr>
@@ -102,11 +102,13 @@
                         <td>{{ item.login }}</td>
                         <td>{{ item.allGames }}</td>
                         <td>{{ item.allWins }}</td>
-                        <td>{{ item.allScore }}</td>
+                        <td>{{ item.allScore }} [{{ index + 1 }}]</td>
                     </tr>
                     </tbody>
                 </table>
             </div>
+
+            <p class="text-left text-success" v-if="userPlace > 0">Вы занимаете <strong class="text-primary">{{ userPlace }}</strong> место <i class="fas fa-trophy" v-if="userPlace == 1"></i></p>
 
         <div class="profile-table table-responsive">
             <table class="table table-bordered">
@@ -189,6 +191,7 @@ function formatGameTime(minutes) {
             userScore: 0,
             usersArray: [],
             userGamesArray: [],
+            userPlace: 0,
         },
         methods: {
             async registerUser() {
@@ -233,6 +236,12 @@ function formatGameTime(minutes) {
 
                     this.usersArray = usersArray.sort((a, b) => b.allScore - a.allScore)
                     //console.log(this.usersArray)
+
+                    for (let i = 0; i < usersArray.length; i ++) {
+                        if (usersArray[i]["login"] == this.login) {
+                            this.userPlace = i + 1  // i начинается с 0 а не 1 => userPlace = i + 1
+                        }
+                    }
 
                 } catch (error) {
                     console.log(error)
